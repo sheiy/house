@@ -10,7 +10,7 @@ import site.ownw.micro.house.model.request.ComputeRequest;
 public interface ComputeService {
 
     /**
-     * 计算当前日期下房子卖多少钱 不亏
+     * 计算当前日期下房子卖多少钱不亏
      *
      * @param request 请求对象
      * @return 当前卖多少钱不亏
