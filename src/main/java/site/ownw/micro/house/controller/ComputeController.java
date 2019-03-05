@@ -2,14 +2,12 @@ package site.ownw.micro.house.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import site.ownw.micro.house.model.request.ComputeRequest;
 import site.ownw.micro.house.service.ComputeService;
 
-import java.time.LocalDate;
+import javax.validation.Valid;
 
 /**
  * @author sofior
@@ -23,8 +21,8 @@ public class ComputeController {
     private final ComputeService computeService;
 
     @GetMapping
-    public Flux compute(@RequestParam LocalDate buyTime,@RequestParam  Integer downPayment,@RequestParam  Integer monthlyPayment,@RequestParam  Integer payDay,@RequestParam  Float operateRate,@RequestParam  Float loanRate) {
-        return computeService.compute(buyTime, downPayment, monthlyPayment, payDay, operateRate, loanRate);
+    public Flux compute(@Valid ComputeRequest request) {
+        return computeService.compute(request);
     }
 
 }
