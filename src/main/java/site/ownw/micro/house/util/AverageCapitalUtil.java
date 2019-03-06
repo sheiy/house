@@ -36,7 +36,11 @@ public abstract class AverageCapitalUtil {
         }
         BigDecimal onePlusMonthlyRate = β.add(BigDecimal.ONE).pow(n.intValue());
         BigDecimal numerator = X.multiply((onePlusMonthlyRate.subtract(BigDecimal.ONE)));
-        return A.multiply(onePlusMonthlyRate).subtract(numerator.divide(β, 20, RoundingMode.UP));
+        BigDecimal result = A.multiply(onePlusMonthlyRate).subtract(numerator.divide(β, 20, RoundingMode.UP));
+        if (result.compareTo(BigDecimal.ZERO) < 0) {
+            return BigDecimal.ZERO;
+        }
+        return result;
     }
 
     public static void main(String[] args) {

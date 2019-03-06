@@ -27,15 +27,15 @@ public class ComputeTests {
     @Test
     public void compute() throws Exception {
         ComputeRequest request = new ComputeRequest();
-        request.setTotalAmount(BigDecimal.valueOf(450000));
-        request.setPayDay(1);
-        request.setFirstRepaymentDate(LocalDate.of(2018, 3, 28));
-        request.setDownPaymentDate(LocalDate.of(2018, 3, 1));
-        request.setDownPayment(BigDecimal.valueOf(1000000));
-        request.setTotalPeriods(240);
-        request.setOperateRate(BigDecimal.valueOf(0.031));
+        request.setTotalAmount(BigDecimal.valueOf(900000));
+        request.setPayDay(31);
+        request.setFirstRepaymentDate(LocalDate.of(2019, 2, 28));
+        request.setDownPaymentDate(LocalDate.of(2019, 2, 15));
+        request.setDownPayment(BigDecimal.valueOf(450000));
+        request.setTotalPeriods(360);
+        request.setOperateRate(BigDecimal.valueOf(0.05));
         request.setLoanRate(BigDecimal.valueOf(0.049 * 1.15));
-        request.setSellDate(LocalDate.of(2019 + 20, 2, 15));
+        request.setSellDate(LocalDate.of(2019 + 35, 2, 15));
         Mono<BigDecimal> compute = computeService.compute(request);
         BigDecimal block = compute.block();
         System.out.println(block);

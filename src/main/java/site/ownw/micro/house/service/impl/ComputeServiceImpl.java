@@ -1,5 +1,6 @@
 package site.ownw.micro.house.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import site.ownw.micro.house.model.request.ComputeRequest;
@@ -15,6 +16,7 @@ import java.time.temporal.ChronoUnit;
  * @author sofior
  * @date 2019/3/5 10:32
  */
+@Slf4j
 @Service
 public class ComputeServiceImpl implements ComputeService {
 
@@ -37,8 +39,9 @@ public class ComputeServiceImpl implements ComputeService {
         int repaymentDay = request.getPayDay();
         //首付到第一次还款日间隔天数
         long between = request.getDownPaymentDate().until(request.getFirstRepaymentDate(), ChronoUnit.DAYS);
-        //首付到第一次还款日自行运营首付获得的利息
+        //付首付到第一次还款日自行运营首付获得的利息
         rate = rate.add(totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between)));
+        log.info("付首付到首次还款日自行运营首付获得的利息：{}",rate);
 
         int day;
         LocalDate localDate;
@@ -48,7 +51,7 @@ public class ComputeServiceImpl implements ComputeService {
         BigDecimal monthlyRepayment = AverageCapitalUtil.monthlyRepayment(request.getTotalAmount(), monthlyRate, BigDecimal.valueOf(request.getTotalPeriods()));
 
         BigDecimal spareAmount = BigDecimal.ZERO;
-        for (int i = 1; i < request.getTotalPeriods(); i++) {
+        for (int i = 1; i <= request.getTotalPeriods(); i++) {
             //下一个还款日
             localDate = request.getFirstRepaymentDate().plusMonths(i);
             day = repaymentDay <= localDate.lengthOfMonth() ? repaymentDay : localDate.lengthOfMonth();
@@ -59,6 +62,7 @@ public class ComputeServiceImpl implements ComputeService {
             day = repaymentDay <= localDate.lengthOfMonth() ? repaymentDay : localDate.lengthOfMonth();
             upPayDay = localDate.withDayOfMonth(day);
 
+            spareAmount = AverageCapitalUtil.spareAmount(request.getTotalAmount(), monthlyRate, BigDecimal.valueOf(i), monthlyRepayment);
             if (upPayDay.isBefore(sellDate)) {
 
                 //两个还款日间隔天数
@@ -69,9 +73,10 @@ public class ComputeServiceImpl implements ComputeService {
 
                 //两个还款日间隔时间自行运营情况下应获得的利息
                 BigDecimal multiply = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
+                log.info("{}到{}首付加利息{}自行运营获得利息:{}",upPayDay,nextPayDay,totalPay,multiply);
+                log.info("第{}期还款后剩余本金:{}",i,spareAmount);
                 rate = rate.add(multiply);
             } else {
-                spareAmount = AverageCapitalUtil.spareAmount(request.getTotalAmount(), monthlyRate, BigDecimal.valueOf(i - 1), monthlyRepayment);
                 break;
             }
         }
