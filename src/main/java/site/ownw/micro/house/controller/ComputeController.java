@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import site.ownw.micro.house.model.request.ComputeRequest;
 import site.ownw.micro.house.service.ComputeService;
 
@@ -21,7 +22,7 @@ public class ComputeController {
     private final ComputeService computeService;
 
     @GetMapping
-    public Flux compute(@Valid ComputeRequest request) {
+    public Mono compute(@Valid ComputeRequest request) {
         return computeService.compute(request);
     }
 

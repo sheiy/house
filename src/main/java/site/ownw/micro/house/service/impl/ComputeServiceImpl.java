@@ -1,9 +1,10 @@
 package site.ownw.micro.house.service.impl;
 
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import site.ownw.micro.house.model.request.ComputeRequest;
 import site.ownw.micro.house.service.ComputeService;
+import site.ownw.micro.house.util.AverageCapitalUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,9 +19,12 @@ import java.time.temporal.ChronoUnit;
 public class ComputeServiceImpl implements ComputeService {
 
     @Override
-    public Flux compute(ComputeRequest request) {
+    public Mono<BigDecimal> compute(ComputeRequest request) {
         //当前日期
-        LocalDate now = LocalDate.now();
+        LocalDate sellDate = request.getSellDate();
+        if (sellDate == null) {
+            sellDate = LocalDate.now();
+        }
         //总支出
         BigDecimal totalPay = request.getDownPayment();
         //自行运营总利息
@@ -40,6 +44,10 @@ public class ComputeServiceImpl implements ComputeService {
         LocalDate localDate;
         LocalDate nextPayDay;
         LocalDate upPayDay;
+        BigDecimal monthlyRate = request.getLoanRate().divide(BigDecimal.valueOf(12), 20, RoundingMode.UP);
+        BigDecimal monthlyRepayment = AverageCapitalUtil.monthlyRepayment(request.getTotalAmount(), monthlyRate, BigDecimal.valueOf(request.getTotalPeriods()));
+
+        BigDecimal spareAmount = BigDecimal.ZERO;
         for (int i = 1; i < request.getTotalPeriods(); i++) {
             //下一个还款日
             localDate = request.getFirstRepaymentDate().plusMonths(i);
@@ -51,43 +59,22 @@ public class ComputeServiceImpl implements ComputeService {
             day = repaymentDay <= localDate.lengthOfMonth() ? repaymentDay : localDate.lengthOfMonth();
             upPayDay = localDate.withDayOfMonth(day);
 
-            if (upPayDay.isBefore(now)) {
+            if (upPayDay.isBefore(sellDate)) {
 
                 //两个还款日间隔天数
                 between = upPayDay.until(nextPayDay, ChronoUnit.DAYS);
 
                 //到nextPayDay时共计支出了多少钱(本金+月供)
-                totalPay = totalPay.add(request.getMonthlyPayment());
+                totalPay = totalPay.add(monthlyRepayment);
 
                 //两个还款日间隔时间自行运营情况下应获得的利息
                 BigDecimal multiply = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
                 rate = rate.add(multiply);
             } else {
+                spareAmount = AverageCapitalUtil.spareAmount(request.getTotalAmount(), monthlyRate, BigDecimal.valueOf(i - 1), monthlyRepayment);
                 break;
             }
         }
-        return Flux.just(rate.add(totalPay));
-//
-//
-//        LocalDate temp = firstPayDay;
-//        int computeCount = 0;
-//        int between =
-//        do {
-//
-//            temp = temp.plusMonths(1);
-//        } while (temp.isBefore(now) && computeCount <= totalPeriods);
-//
-//        //买了多少天
-//        int buyDays = Period.between(buyTime, now).getDays();
-//
-//
-//        //贷款日化支付资金
-//        double dayOfPayment = monthlyPayment * 12 / 365.0;
-//        //迄今为止支付的还款
-//        double totalMonthlyPayment = buyDays * dayOfPayment;
-//        //迄今为止包含首付的支出
-//        double totalPayment = (downPayment * 10000) + totalMonthlyPayment;
-//
-//        totalPayment *
+        return Mono.just(spareAmount.add(rate.add(totalPay)));
     }
 }

@@ -1,7 +1,10 @@
 package site.ownw.micro.house.service;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import site.ownw.micro.house.model.request.ComputeRequest;
+
+import java.math.BigDecimal;
 
 /**
  * @author sofior
@@ -15,5 +18,5 @@ public interface ComputeService {
      * @param request 请求对象
      * @return 当前卖多少钱不亏
      */
-    Flux compute(ComputeRequest request);
+    Mono<BigDecimal> compute(ComputeRequest request);
 }

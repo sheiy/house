@@ -1,6 +1,7 @@
 package site.ownw.micro.house.model.request;
 
 import lombok.Data;
+import lombok.NonNull;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -13,6 +14,11 @@ import java.time.LocalDate;
 @Data
 public class ComputeRequest {
 
+    /**
+     * 贷款总额度
+     */
+    @NotNull
+    private BigDecimal totalAmount;
     /**
      * 首付支付日期
      */
@@ -34,11 +40,6 @@ public class ComputeRequest {
     @NotNull
     private BigDecimal downPayment;
     /**
-     * 月供
-     */
-    @NotNull
-    private BigDecimal monthlyPayment;
-    /**
      * 总贷款期数
      */
     @NotNull
@@ -53,4 +54,8 @@ public class ComputeRequest {
      */
     @NotNull
     private BigDecimal loanRate;
+    /**
+     * 什么时候卖
+     */
+    private LocalDate sellDate;
 }
