@@ -77,13 +77,15 @@ public class ComputeServiceImpl implements ComputeService {
             BigDecimal rate = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
             totalRate = totalRate.add(rate);
             log.info("{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", upPayDay, nextPayDay, between, totalPay.setScale(2, RoundingMode.UP), rate.setScale(2, RoundingMode.UP), totalRate.setScale(2, RoundingMode.UP), spareAmount.setScale(2, RoundingMode.UP));
-            if (request.getTotalPeriods().equals(i) && sellDate.isAfter(nextPayDay)) {
-                between = nextPayDay.until(sellDate, ChronoUnit.DAYS);
-                rate = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
-                totalRate = totalRate.add(rate);
-                log.info("欠款还清,{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", nextPayDay, sellDate, between, totalPay.setScale(2, RoundingMode.UP), rate.setScale(2, RoundingMode.UP), totalRate.setScale(2, RoundingMode.UP), spareAmount.setScale(2, RoundingMode.UP));
-            } else {
-                log.info("欠款未还清,剩余欠款:{}", spareAmount.setScale(2, RoundingMode.UP));
+            if (request.getTotalPeriods().equals(i)) {
+                if (sellDate.isAfter(nextPayDay)) {
+                    between = nextPayDay.until(sellDate, ChronoUnit.DAYS);
+                    rate = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
+                    totalRate = totalRate.add(rate);
+                    log.info("欠款还清,{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", nextPayDay, sellDate, between, totalPay.setScale(2, RoundingMode.UP), rate.setScale(2, RoundingMode.UP), totalRate.setScale(2, RoundingMode.UP), spareAmount.setScale(2, RoundingMode.UP));
+                } else {
+                    log.info("欠款未还清,剩余欠款:{}", spareAmount.setScale(2, RoundingMode.UP));
+                }
             }
         }
         BigDecimal result = spareAmount.add(totalRate.add(totalPay));
