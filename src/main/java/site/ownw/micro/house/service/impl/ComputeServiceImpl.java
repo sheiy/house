@@ -30,18 +30,16 @@ public class ComputeServiceImpl implements ComputeService {
         //总支出
         BigDecimal totalPay = request.getDownPayment();
         //自行运营总利息
-        BigDecimal rate = new BigDecimal(0);
+        BigDecimal totalRate = new BigDecimal(0);
         //自行运营日利率
         BigDecimal dayOfOperateRate = request.getOperateRate().divide(BigDecimal.valueOf(365.0), 20, RoundingMode.UP);
-        //银行贷款日利率
-        BigDecimal dayOfLoanRate = request.getLoanRate().divide(BigDecimal.valueOf(365.0), 20, RoundingMode.UP);
         //还款日
         int repaymentDay = request.getPayDay();
         //首付到第一次还款日间隔天数
         long between = request.getDownPaymentDate().until(request.getFirstRepaymentDate(), ChronoUnit.DAYS);
-        //付首付到第一次还款日自行运营首付获得的利息
-        rate = rate.add(totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between)));
-        log.info("付首付到首次还款日自行运营首付获得的利息：{}",rate);
+        //首付到第一次还款日自行运营首付获得的利息
+        totalRate = totalRate.add(totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between)));
+        log.info("首付{}到首次还款{}自行运营{}天获得利息:{}", request.getDownPaymentDate(), request.getFirstRepaymentDate(), between, totalRate);
 
         int day;
         LocalDate localDate;
@@ -62,24 +60,33 @@ public class ComputeServiceImpl implements ComputeService {
             day = repaymentDay <= localDate.lengthOfMonth() ? repaymentDay : localDate.lengthOfMonth();
             upPayDay = localDate.withDayOfMonth(day);
 
-            spareAmount = AverageCapitalUtil.spareAmount(request.getTotalAmount(), monthlyRate, BigDecimal.valueOf(i), monthlyRepayment);
-            if (upPayDay.isBefore(sellDate)) {
-
+            if (nextPayDay.isBefore(sellDate)) {
                 //两个还款日间隔天数
                 between = upPayDay.until(nextPayDay, ChronoUnit.DAYS);
-
                 //到nextPayDay时共计支出了多少钱(本金+月供)
                 totalPay = totalPay.add(monthlyRepayment);
 
-                //两个还款日间隔时间自行运营情况下应获得的利息
-                BigDecimal multiply = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
-                log.info("{}到{}首付加利息{}自行运营获得利息:{}",upPayDay,nextPayDay,totalPay,multiply);
-                log.info("第{}期还款后剩余本金:{}",i,spareAmount);
-                rate = rate.add(multiply);
+                //剩余欠款
+                spareAmount = AverageCapitalUtil.spareAmount(request.getTotalAmount(), monthlyRate, BigDecimal.valueOf(i), monthlyRepayment);
             } else {
-                break;
+                //上一个还款日到卖出日期的天数
+                between = upPayDay.until(sellDate, ChronoUnit.DAYS);
+            }
+
+            //两个还款日间隔时间自行运营情况下应获得的利息
+            BigDecimal rate = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
+            totalRate = totalRate.add(rate);
+            log.info("{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", upPayDay, nextPayDay, between, totalPay, rate, totalRate, spareAmount);
+            if (request.getTotalPeriods().equals(i) && sellDate.isAfter(nextPayDay)) {
+                between = nextPayDay.until(sellDate, ChronoUnit.DAYS);
+                rate = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
+                totalRate = totalRate.add(rate);
+                log.info("欠款还清,{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", nextPayDay, sellDate, between, totalPay, rate, totalRate, spareAmount);
             }
         }
-        return Mono.just(spareAmount.add(rate.add(totalPay)));
+        BigDecimal result = spareAmount.add(totalRate.add(totalPay));
+        long totalDay = request.getDownPaymentDate().until(sellDate, ChronoUnit.DAYS);
+        log.info("{}天后至少卖{}忽略通货膨胀不亏", totalDay, result);
+        return Mono.just(result);
     }
 }

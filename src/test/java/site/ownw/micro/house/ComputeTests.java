@@ -33,29 +33,12 @@ public class ComputeTests {
         request.setDownPaymentDate(LocalDate.of(2019, 2, 15));
         request.setDownPayment(BigDecimal.valueOf(450000));
         request.setTotalPeriods(360);
-        request.setOperateRate(BigDecimal.valueOf(0.05));
+        request.setOperateRate(BigDecimal.valueOf(0.03));
         request.setLoanRate(BigDecimal.valueOf(0.049 * 1.15));
         request.setSellDate(LocalDate.of(2019 + 35, 2, 15));
         Mono<BigDecimal> compute = computeService.compute(request);
         BigDecimal block = compute.block();
         System.out.println(block);
-
-//        EntityExchangeResult<String> result = webClient.get()
-//                .uri("/compute?" +
-//                        "totalAmount=900000&" +
-//                        "payDay=31&" +
-//                        "firstRepaymentDate=2019-02-28&" +
-//                        "downPaymentDate=2019-02-15&" +
-//                        "downPayment=400000&" +
-//                        "totalPeriods=360&" +
-//                        "operateRate=0.031&" +
-//                        "loanRate=0.052")
-//                .accept(MediaType.APPLICATION_JSON_UTF8)
-//                .exchange()
-//                .expectStatus().isOk()
-//                .expectBody(String.class)
-//                .returnResult();
-//        System.out.println(result.getResponseBody());
     }
 
 }
