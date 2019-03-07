@@ -39,7 +39,7 @@ public class ComputeServiceImpl implements ComputeService {
         long between = request.getDownPaymentDate().until(request.getFirstRepaymentDate(), ChronoUnit.DAYS);
         //首付到第一次还款日自行运营首付获得的利息
         totalRate = totalRate.add(totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between)));
-        log.info("首付{}到首次还款{}自行运营{}天获得利息:{}", request.getDownPaymentDate(), request.getFirstRepaymentDate(), between, totalRate);
+        log.info("首付{}到首次还款{}自行运营{}天获得利息:{}", request.getDownPaymentDate(), request.getFirstRepaymentDate(), between, totalRate.setScale(2, RoundingMode.UP));
 
         int day;
         LocalDate localDate;
@@ -76,17 +76,19 @@ public class ComputeServiceImpl implements ComputeService {
             //两个还款日间隔时间自行运营情况下应获得的利息
             BigDecimal rate = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
             totalRate = totalRate.add(rate);
-            log.info("{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", upPayDay, nextPayDay, between, totalPay, rate, totalRate, spareAmount);
+            log.info("{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", upPayDay, nextPayDay, between, totalPay.setScale(2, RoundingMode.UP), rate.setScale(2, RoundingMode.UP), totalRate.setScale(2, RoundingMode.UP), spareAmount.setScale(2, RoundingMode.UP));
             if (request.getTotalPeriods().equals(i) && sellDate.isAfter(nextPayDay)) {
                 between = nextPayDay.until(sellDate, ChronoUnit.DAYS);
                 rate = totalPay.multiply(dayOfOperateRate).multiply(BigDecimal.valueOf(between));
                 totalRate = totalRate.add(rate);
-                log.info("欠款还清,{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", nextPayDay, sellDate, between, totalPay, rate, totalRate, spareAmount);
+                log.info("欠款还清,{}到{}自行运营{}天,支出金额{},自行运营可获得利息:{},目前总获利息:{},剩余欠款:{}", nextPayDay, sellDate, between, totalPay.setScale(2, RoundingMode.UP), rate.setScale(2, RoundingMode.UP), totalRate.setScale(2, RoundingMode.UP), spareAmount.setScale(2, RoundingMode.UP));
+            } else {
+                log.info("欠款未还清,剩余欠款:{}", spareAmount.setScale(2, RoundingMode.UP));
             }
         }
         BigDecimal result = spareAmount.add(totalRate.add(totalPay));
         long totalDay = request.getDownPaymentDate().until(sellDate, ChronoUnit.DAYS);
-        log.info("{}天后至少卖{}忽略通货膨胀不亏", totalDay, result);
-        return Mono.just(result);
+        log.info("{}天后至少卖{}忽略通货膨胀不亏", totalDay, result.setScale(2, RoundingMode.UP));
+        return Mono.just(result.setScale(2, RoundingMode.UP));
     }
 }

@@ -23,7 +23,6 @@ public class ComputeTests {
     @Autowired
     private ComputeService computeService;
 
-
     @Test
     public void compute() throws Exception {
         ComputeRequest request = new ComputeRequest();
@@ -34,7 +33,8 @@ public class ComputeTests {
         request.setDownPayment(BigDecimal.valueOf(450000));
         request.setTotalPeriods(360);
         request.setOperateRate(BigDecimal.valueOf(0.03));
-        request.setLoanRate(BigDecimal.valueOf(0.049 * 1.15));
+//        request.setLoanRate(BigDecimal.valueOf(0.0325));
+        request.setLoanRate(BigDecimal.valueOf(0.049*1.15));
         request.setSellDate(LocalDate.of(2019 + 30, 2, 15));
         Mono<BigDecimal> compute = computeService.compute(request);
         BigDecimal block = compute.block();
