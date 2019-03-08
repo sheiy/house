@@ -1,0 +1,9 @@
+logging:
+    file: house.log
+spring:
+    application:
+        name: house
+    cloud:
+        nacos:
+            discovery:
+                server-addr: host.ownw.site:8848

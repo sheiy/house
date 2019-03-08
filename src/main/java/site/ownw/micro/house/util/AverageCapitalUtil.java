@@ -3,6 +3,9 @@ package site.ownw.micro.house.util;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+/**
+ * @author Sofior
+ */
 public abstract class AverageCapitalUtil {
 
     /**
@@ -43,13 +46,4 @@ public abstract class AverageCapitalUtil {
         return result;
     }
 
-    public static void main(String[] args) {
-        BigDecimal A = BigDecimal.valueOf(900000);
-        BigDecimal β = BigDecimal.valueOf((0.049 * (1.15)) / 12);
-        BigDecimal m = BigDecimal.valueOf(360);
-
-        BigDecimal X = AverageCapitalUtil.monthlyRepayment(A, β, m);
-        System.out.println("每月还款:" + X);
-        System.out.println("剩余应还:" + AverageCapitalUtil.spareAmount(A, β, BigDecimal.valueOf(1), X));
-    }
 }
