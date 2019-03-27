@@ -1,5 +1,3 @@
-logging:
-    file: house.log
 spring:
     application:
         name: house
@@ -7,3 +5,13 @@ spring:
         nacos:
             discovery:
                 server-addr: host.ownw.site:8848
+management:
+    endpoints:
+        web:
+            exposure:
+                include: "*"
+    endpoint:
+        health:
+            show-details: always
+server:
+    port: 8081
