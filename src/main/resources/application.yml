@@ -1,3 +1,5 @@
+server:
+    port: 9088
 spring:
     application:
         name: house
@@ -13,5 +15,3 @@ management:
     endpoint:
         health:
             show-details: always
-server:
-    port: 8081
